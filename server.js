@@ -5,12 +5,15 @@ const cors = require('cors');
 const axios = require('axios');
 const Papa = require('papaparse');
 const { Pool } = require('pg');
-const { roundToFixed } = require('./utils/utilities');
+const { roundToFixed, convertToISODate } = require('./utils/utilities');
 
 const app = express();
 app.use(cors());
-app.listen(3001, () => {});
-
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.listen(3001, () => {
+  console.log('Server listening on port 3001');
+});
 const pool = new Pool({
   user: process.env.POSTGRES_USER,
   password: process.env.POSTGRES_PASSWORD,
@@ -33,7 +36,7 @@ const parseCsvData = async (data) => {
             nmi = record[1];
             intervalLength = record[8];
           } else if (recordType === '300') {
-            const timestamp = record[1];
+            const timestamp = convertToISODate(record[1]);
             const numberOfIntervalValues = parseInt(
               1440 / parseInt(intervalLength)
             );
@@ -86,7 +89,7 @@ const insertDataIntoDatabase = async (nmi, timestamp, consumption) => {
     ]);
     if (existingData.rows.length === 0) {
       const query =
-        'INSERT INTO meter_readings (id, "nmi", "timestamp", consumption) VALUES (gen_random_uuid(), $1, $2, $3)';
+        'INSERT INTO meter_readings ("nmi", "timestamp", consumption) VALUES ( $1, $2, $3)';
       await client.query(query, [nmi, timestamp, consumption]);
       return {};
     }
@@ -95,12 +98,12 @@ const insertDataIntoDatabase = async (nmi, timestamp, consumption) => {
   }
 };
 
-app.get('/fetch-csv-data', async (req, res) => {
+app.post('/fetch-csv-data', async (req, res) => {
   try {
     // The csv file should be obtained from the server, below commented is an example.
-    // const param = req.query.file;
+    // const { filename } = req.body;
     // const { data } = await axios.get(
-    //   `https://example.com/retrieve-csv-file/?file=${param}.csv`
+    //   `https://example.com/retrieve-csv-file/${filename}.csv`,
     // );
 
     // I hardcoded the below to retrieve sample data

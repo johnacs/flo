@@ -1,11 +1,12 @@
 // app.test.js
 const request = require('supertest');
 const { app, insertDataIntoDatabase } = require('./server');
+const { convertToISODate } = require('./utils/utilities');
 const { Pool } = require('pg');
 
 describe('Check route', () => {
-  it('should return 200 OK on GET /fetch-csv-data', async () => {
-    const res = await request(app).get('/fetch-csv-data');
+  it('should return 200 OK on POST /fetch-csv-data', async () => {
+    const res = await request(app).post('/fetch-csv-data');
     expect(res.status).toBe(200);
     expect(res.text).toBe('CSV data processing complete.');
   });
@@ -46,9 +47,7 @@ describe('Insert Data Into Database', () => {
 
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].nmi).toBe(nmi);
-    const expectedTimestamp = new Date(
-      '2021-12-30T16:00:00.000Z'
-    ).toISOString();
+    const expectedTimestamp = convertToISODate(timestamp);
     expect(result.rows[0].timestamp.toISOString()).toBe(expectedTimestamp);
     expect(parseFloat(result.rows[0].consumption)).toBeCloseTo(100.5);
   });
@@ -72,9 +71,7 @@ describe('Insert Data Into Database', () => {
 
     expect(result.rows.length).toBe(1);
     expect(result.rows[0].nmi).toBe(nmi);
-    const expectedTimestamp = new Date(
-      '2021-12-30T16:00:00.000Z'
-    ).toISOString();
+    const expectedTimestamp = convertToISODate(timestamp);
     expect(result.rows[0].timestamp.toISOString()).toBe(expectedTimestamp);
     expect(parseFloat(result.rows[0].consumption)).toBeCloseTo(100.5);
   });
