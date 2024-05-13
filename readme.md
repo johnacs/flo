@@ -1,6 +1,6 @@
 - install module dependencies
   `npm install`
-
+- rename .env.example to .env and fill in the details with the information I email you.
 - run server
   `npm start`
 
